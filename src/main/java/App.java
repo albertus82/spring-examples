@@ -31,17 +31,15 @@ public class App {
 	private static int c = 0;
 
 	private InMemoryDirectoryServer server;
-	private int port;
 
 	@PostConstruct
 	void postConstruct() throws LDAPException {
 		final InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig("dc=example,dc=com");
 		config.setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("embedded", 389));
 		server = new InMemoryDirectoryServer(config);
+		server.applyChangesFromLDIF("example.ldif");
 		server.startListening();
 		log.info("server started");
-		port = server.getListenPort();
-		server.applyChangesFromLDIF("example.ldif");
 	}
 
 	@PreDestroy
@@ -71,7 +69,7 @@ public class App {
 				throw new UnsupportedOperationException();
 			}
 		};
-		source.setUrl("ldap://localhost:" + port);
+		source.setUrl("ldap://localhost:" + server.getListenPort());
 		return source;
 	}
 
