@@ -39,14 +39,15 @@ public class App {
 		server = new InMemoryDirectoryServer(config);
 		server.applyChangesFromLDIF("example.ldif");
 		server.startListening();
-		log.info("server started");
+		log.info("{} started.", server.getClass().getSimpleName());
 	}
 
 	@PreDestroy
 	void preDestroy() {
 		if (server != null) {
 			server.shutDown(true);
-			log.info("server stopped");
+			log.info("{} stopped", server.getClass().getSimpleName());
+			server = null;
 		}
 	}
 
