@@ -1,8 +1,10 @@
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -57,7 +59,20 @@ public class App {
 			@Override
 			public DirContext getReadOnlyContext() {
 				log.info("{} DirContextSource.getReadOnlyContext", ++c);
-				return super.getReadOnlyContext();
+				final DirContext readOnlyContext = super.getReadOnlyContext();
+				new Thread(() -> {
+					try {
+						TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4500) + 500L);
+						readOnlyContext.close(); // simulate failure after some time
+					}
+					catch (final NamingException e) {
+						log.error(e.toString(), e);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				}).start();
+				return readOnlyContext;
 			}
 
 			@Override
@@ -66,7 +81,7 @@ public class App {
 			}
 
 			@Override
-			public DirContext getContext(String principal, String credentials) {
+			public DirContext getContext(final String principal, final String credentials) {
 				throw new UnsupportedOperationException();
 			}
 		};
@@ -78,8 +93,8 @@ public class App {
 	@Primary
 	PooledContextSource pooledContextSource(ContextSource wrapped) {
 		final PoolConfig config = new PoolConfig();
-		config.setMinEvictableIdleTimeMillis(20000);
-		config.setTimeBetweenEvictionRunsMillis(20000);
+		config.setMinEvictableIdleTimeMillis(2000);
+		config.setTimeBetweenEvictionRunsMillis(2000);
 		config.setTestOnBorrow(true);
 		final PooledContextSource source = new PooledContextSource(config);
 		source.setContextSource(wrapped);
@@ -102,7 +117,7 @@ public class App {
 				for (int i = 0; i < 5; i++) {
 					log.info("{} {}", new Date(), l.list("dc=example,dc=com"));
 				}
-				TimeUnit.MILLISECONDS.sleep(30000);
+				TimeUnit.MILLISECONDS.sleep(3000);
 			}
 		}
 		finally {
