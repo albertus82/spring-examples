@@ -5,8 +5,8 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>it.albertus</groupId>
-	<artifactId>ldap-pool-tests</artifactId>
+	<groupId>com.example</groupId>
+	<artifactId>spring-ldap-pool-example</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
