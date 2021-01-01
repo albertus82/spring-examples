@@ -62,8 +62,9 @@ public class App {
 				final DirContext readOnlyContext = super.getReadOnlyContext();
 				new Thread(() -> {
 					try {
-						TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4500) + 500L);
+						TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4000) + 1000L);
 						readOnlyContext.close(); // simulate failure after some time
+						log.info("{} failed!", readOnlyContext);
 					}
 					catch (final NamingException e) {
 						log.error(e.toString(), e);
