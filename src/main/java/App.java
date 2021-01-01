@@ -60,7 +60,7 @@ public class App {
 			public DirContext getReadOnlyContext() {
 				log.info("{} DirContextSource.getReadOnlyContext", ++c);
 				final DirContext readOnlyContext = super.getReadOnlyContext();
-				new Thread(() -> {
+				final Thread t = new Thread(() -> {
 					try {
 						TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4000) + 1000L);
 						readOnlyContext.close(); // simulate failure after some time
@@ -72,7 +72,10 @@ public class App {
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
-				}).start();
+				});
+				t.setPriority(Thread.MAX_PRIORITY);
+				t.setDaemon(true);
+				t.start();
 				return readOnlyContext;
 			}
 
@@ -117,6 +120,7 @@ public class App {
 			for (; j < 50; j++) {
 				for (int i = 0; i < 5; i++) {
 					log.info("{} {}", new Date(), l.list("dc=example,dc=com"));
+					TimeUnit.MILLISECONDS.sleep(100);
 				}
 				TimeUnit.MILLISECONDS.sleep(3000);
 			}
