@@ -1,1 +1,0 @@
-# spring-ldap-pool-example
