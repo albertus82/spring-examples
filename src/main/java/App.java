@@ -76,7 +76,7 @@ public class App {
 
 	@Bean
 	@Primary
-	ContextSource pooledContextSource(ContextSource wrapped) {
+	PooledContextSource pooledContextSource(ContextSource wrapped) {
 		final PoolConfig config = new PoolConfig();
 		config.setMinEvictableIdleTimeMillis(20000);
 		config.setTimeBetweenEvictionRunsMillis(20000);
