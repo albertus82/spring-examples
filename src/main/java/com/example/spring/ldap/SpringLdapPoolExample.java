@@ -1,3 +1,5 @@
+package com.example.spring.ldap;
+
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +28,7 @@ import org.springframework.ldap.pool2.factory.PoolConfig;
 import org.springframework.ldap.pool2.factory.PooledContextSource;
 import org.springframework.ldap.pool2.validation.DefaultDirContextValidator;
 
+import com.example.spring.ldap.repository.PersonLdapRepository;
 import com.unboundid.ldap.listener.InMemoryDirectoryServer;
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
 import com.unboundid.ldap.listener.InMemoryListenerConfig;
@@ -139,14 +142,23 @@ public class SpringLdapPoolExample {
 		int i = 0;
 		try (final ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(SpringLdapPoolExample.class)) {
 			System.out.println("============================================================================");
+
+			final PersonLdapRepository repo = context.getBean(PersonLdapRepository.class);
+			for (int j = 0; j < 5; j++) {
+				log.info("{}", repo.findBySnLikeIgnoreCase("Chil*"));
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+			TimeUnit.MILLISECONDS.sleep(3000);
+
 			final LdapOperations ldapOperations = context.getBean(LdapOperations.class);
 			for (; i < 50; i++) {
-				for (int k = 0; k < 5; k++) {
+				for (int j = 0; j < 5; j++) {
 					log.info("{}", ldapOperations.list("dc=example,dc=com"));
 					TimeUnit.MILLISECONDS.sleep(100);
 				}
 				TimeUnit.MILLISECONDS.sleep(3000);
 			}
+
 		}
 		finally {
 			log.info("{}/{}", c, i);
