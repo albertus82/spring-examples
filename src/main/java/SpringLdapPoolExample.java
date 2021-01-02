@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.LdapOperations;
 import org.springframework.ldap.core.LdapTemplate;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
+@EnableLdapRepositories
 @PropertySource("classpath:application.properties")
 public class SpringLdapPoolExample {
 
@@ -126,7 +128,7 @@ public class SpringLdapPoolExample {
 	}
 
 	@Bean
-	LdapOperations ldapOperations(ContextSource source) {
+	LdapTemplate ldapTemplate(ContextSource source) {
 		log.info("{}", source);
 		final LdapTemplate template = new LdapTemplate();
 		template.setContextSource(source);
