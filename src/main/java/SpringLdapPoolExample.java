@@ -127,6 +127,7 @@ public class SpringLdapPoolExample {
 
 	@Bean
 	LdapOperations ldapOperations(ContextSource source) {
+		log.info("{}", source);
 		final LdapTemplate template = new LdapTemplate();
 		template.setContextSource(source);
 		return template;
