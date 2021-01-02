@@ -1,4 +1,3 @@
-import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -7,10 +6,16 @@ import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.LdapOperations;
 import org.springframework.ldap.core.LdapTemplate;
@@ -26,13 +31,23 @@ import com.unboundid.ldap.sdk.LDAPException;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Configuration
 @Slf4j
+@Configuration
+@PropertySource("classpath:application.properties")
 public class App {
+
+	// Set DEBUG level for org.springframework.ldap(.pool2)
 
 	private static int c = 0;
 
 	private InMemoryDirectoryServer server;
+
+	static class PoolingCondition implements Condition {
+		@Override
+		public boolean matches(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
+			return Boolean.parseBoolean(context.getEnvironment().getProperty("ldap.pooling.enabled"));
+		}
+	}
 
 	@PostConstruct
 	void postConstruct() throws LDAPException {
@@ -54,28 +69,30 @@ public class App {
 	}
 
 	@Bean
-	ContextSource contextSource() {
+	ContextSource contextSource(@Value("${ldap.pooling.enabled:false}") boolean ldapPoolingEnabled) {
 		final DirContextSource source = new DirContextSource() {
 			@Override
 			public DirContext getReadOnlyContext() {
 				log.info("{} DirContextSource.getReadOnlyContext", ++c);
 				final DirContext readOnlyContext = super.getReadOnlyContext();
-				final Thread t = new Thread(() -> {
-					try {
-						TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4000) + 1000L);
-						readOnlyContext.close(); // simulate failure after some time
-						log.info("{} failed!", readOnlyContext);
-					}
-					catch (final NamingException e) {
-						log.error(e.toString(), e);
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-				});
-				t.setPriority(Thread.MAX_PRIORITY);
-				t.setDaemon(true);
-				t.start();
+				if (ldapPoolingEnabled) {
+					final Thread t = new Thread(() -> {
+						try {
+							TimeUnit.MILLISECONDS.sleep(new Random().nextInt(4000) + 1000L);
+							readOnlyContext.close(); // simulate failure after some time
+							log.info("{} failed!", readOnlyContext);
+						}
+						catch (final NamingException e) {
+							log.error(e.toString(), e);
+						}
+						catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+					});
+					t.setPriority(Thread.MAX_PRIORITY);
+					t.setDaemon(true);
+					t.start();
+				}
 				return readOnlyContext;
 			}
 
@@ -95,6 +112,7 @@ public class App {
 
 	@Bean
 	@Primary
+	@Conditional(PoolingCondition.class)
 	PooledContextSource pooledContextSource(ContextSource wrapped) {
 		final PoolConfig config = new PoolConfig();
 		config.setMinEvictableIdleTimeMillis(2000);
@@ -114,19 +132,21 @@ public class App {
 	}
 
 	public static void main(final String... args) throws InterruptedException {
-		int j = 0;
+		int i = 0;
 		try (final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(App.class)) {
-			LdapOperations l = context.getBean(LdapOperations.class);
-			for (; j < 50; j++) {
-				for (int i = 0; i < 5; i++) {
-					log.info("{} {}", new Date(), l.list("dc=example,dc=com"));
+			System.out.println("============================================================================");
+			final LdapOperations ldapOperations = context.getBean(LdapOperations.class);
+			for (; i < 50; i++) {
+				for (int k = 0; k < 5; k++) {
+					log.info("{}", ldapOperations.list("dc=example,dc=com"));
 					TimeUnit.MILLISECONDS.sleep(100);
 				}
 				TimeUnit.MILLISECONDS.sleep(3000);
 			}
 		}
 		finally {
-			log.info("{}/{}", c, j);
+			log.info("{}/{}", c, i);
+			System.out.println("============================================================================");
 		}
 	}
 
