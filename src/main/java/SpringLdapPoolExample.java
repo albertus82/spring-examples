@@ -7,6 +7,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -42,7 +43,7 @@ public class SpringLdapPoolExample {
 
 	private InMemoryDirectoryServer server;
 
-	static class PoolingCondition implements Condition {
+	static class LdapPoolingCondition implements Condition {
 		@Override
 		public boolean matches(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
 			return Boolean.parseBoolean(context.getEnvironment().getProperty("ldap.pooling.enabled"));
@@ -112,7 +113,7 @@ public class SpringLdapPoolExample {
 
 	@Bean
 	@Primary
-	@Conditional(PoolingCondition.class)
+	@Conditional(LdapPoolingCondition.class)
 	PooledContextSource pooledContextSource(ContextSource wrapped) {
 		final PoolConfig config = new PoolConfig();
 		config.setMinEvictableIdleTimeMillis(2000);
@@ -133,7 +134,7 @@ public class SpringLdapPoolExample {
 
 	public static void main(final String... args) throws InterruptedException {
 		int i = 0;
-		try (final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringLdapPoolExample.class)) {
+		try (final ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(SpringLdapPoolExample.class)) {
 			System.out.println("============================================================================");
 			final LdapOperations ldapOperations = context.getBean(LdapOperations.class);
 			for (; i < 50; i++) {
