@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 @PropertySource("classpath:application.properties")
-public class App {
+public class SpringLdapPoolExample {
 
 	// Set DEBUG level for org.springframework.ldap(.pool2)
 
@@ -133,7 +133,7 @@ public class App {
 
 	public static void main(final String... args) throws InterruptedException {
 		int i = 0;
-		try (final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(App.class)) {
+		try (final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringLdapPoolExample.class)) {
 			System.out.println("============================================================================");
 			final LdapOperations ldapOperations = context.getBean(LdapOperations.class);
 			for (; i < 50; i++) {
