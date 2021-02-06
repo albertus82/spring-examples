@@ -59,7 +59,7 @@ public class SpringLdapPoolExample {
 	void preDestroy() {
 		if (server != null) {
 			server.shutDown(true);
-			log.info("{} stopped", server.getClass().getSimpleName());
+			log.info("{} stopped.", server.getClass().getSimpleName());
 			server = null;
 		}
 	}
@@ -81,7 +81,7 @@ public class SpringLdapPoolExample {
 						catch (final NamingException e) {
 							log.error(e.toString(), e);
 						}
-						catch (InterruptedException e) {
+						catch (final InterruptedException e) {
 							Thread.currentThread().interrupt();
 						}
 					});
