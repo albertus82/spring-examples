@@ -9,16 +9,13 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.LdapOperations;
@@ -47,13 +44,6 @@ public class SpringLdapPoolExample {
 	private static int c = 0;
 
 	private InMemoryDirectoryServer server;
-
-	static class LdapPoolingCondition implements Condition {
-		@Override
-		public boolean matches(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
-			return Boolean.parseBoolean(context.getEnvironment().getProperty("ldap.pooling.enabled"));
-		}
-	}
 
 	@PostConstruct
 	void postConstruct() throws LDAPException {
@@ -118,7 +108,7 @@ public class SpringLdapPoolExample {
 
 	@Bean
 	@Primary
-	@Conditional(LdapPoolingCondition.class)
+	@ConditionalOnProperty("ldap.pooling.enabled")
 	PooledContextSource pooledContextSource(ContextSource wrapped) {
 		final PoolConfig config = new PoolConfig();
 		config.setMinEvictableIdleTimeMillis(2000);
