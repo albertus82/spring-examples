@@ -34,8 +34,9 @@ public class SpringCacheExample {
 					log.info("{} -> {}", i, cache.get(Integer.toString(i)));
 				}
 				for (int i = 0; i < 2; i++) {
-					for (int j = 1; j < 10; j++)
+					for (int j = 1; j < 10; j++) {
 						log.info("{} -> {}", i, cache.get(Integer.toString(i)));
+					}
 				}
 				for (int i = 0; i < 15; i++) {
 					log.info("{} -> {}", i, cache.get(Integer.toString(i)));
